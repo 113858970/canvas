@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>用户手写签名保存图片</title>
+    <style type="text/css">
+        .canvas {
+            margin: 100px auto 0;
+            display: block;
+        }
+
+        .btnBox {
+            width: 400px;
+            display: flex;
+            justify-content: space-around;
+            margin: 20px auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 5px 10px;
+            width: 50px;
+            height: 40px;
+            line-height: 40px;
+            border: 1px solid #eee;
+            background: #e1e1e1;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" class="canvas">
+        您的浏览器不支持canvas技术,请升级浏览器!
+    </canvas>
+    <div class="btnBox">
+        <span id="clear" class="btn">清空</span>
+        <span id="submit" class="btn">确定</span>
+    </div>
+    <img id="images" />
+</body>
+
+</html>
+<script type="text/javascript">
+    class writeFont {
+        constructor(canvas, options) {
+            this.obj = {
+                canvas: canvas,
+                context: canvas.getContext("2d"),
+                isWrite: false,
+                canvasWidth: 400,
+                canvasHeight: 200,
+                bgColor: '#fff',
+                borderWidth: 2,
+                borderColor: '#000',
+                lastPoint: {},
+                writeColor: '#000'
+            }
+            for (let name in options) {
+                this.obj[name] = options[name];
+            }
+            this.canvasInit();
+            this.canvasClear();
+            canvas.addEventListener('mousedown', (e) => {
+                let point = {
+                    x: e.offsetX || e.clientX,
+                    y: e.offsetY || e.clientY
+                };
+                this.writeBegin(point);
+            })
+            canvas.addEventListener('mouseup', (e) => {
+                let point = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+                this.writeEnd(point);
+            });
+            canvas.addEventListener('mousemove', (e) => {
+                if (this.obj.isWrite) {
+                    let point = {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
+                    this.write(point);
+                }
+            });
+        }
+        write = (point) => {
+            this.obj.context.beginPath();
+            this.obj.context.moveTo(this.obj.lastPoint.x, this.obj.lastPoint.y);
+            this.obj.context.lineTo(point.x, point.y);
+            this.obj.context.stroke();
+            this.obj.lastPoint = point;
+            this.obj.context.closePath();
+        }
+        writeContextStyle = () => {
+            this.obj.context.beginPath();
+            this.obj.context.strokeStyle = this.obj.writeColor;
+            this.obj.context.lineCap = 'round';
+            this.obj.context.lineJoin = "round";
+        }
+        writeBegin = (point) => {
+            this.obj.isWrite = true;
+            this.obj.lastPoint = point;
+            this.writeContextStyle();
+        }
+        writeEnd = () => {
+            this.obj.isWrite = false;
+        }
+        canvasClear = () => {
+            this.obj.context.strokeStyle = '#fff';
+            this.obj.context.clearRect(0, 0, this.obj.canvasWidth, this.obj.canvasHeight);
+            this.obj.context.beginPath();
+            let size = this.obj.borderWidth;
+            this.obj.context.moveTo(size, size);
+            this.obj.context.lineTo(this.obj.canvasWidth - size, size);
+            this.obj.context.lineTo(this.obj.canvasWidth - size, this.obj.canvasHeight - size);
+            this.obj.context.lineTo(size, this.obj.canvasHeight - size);
+            this.obj.context.closePath();
+            this.obj.context.lineWidth = this.obj.borderWidth;
+            this.obj.context.strokeStyle = this.obj.borderColor;
+            this.obj.context.stroke();
+        }
+        canvasInit = () => {
+            this.obj.canvas.width = this.obj.canvasWidth;
+            this.obj.canvas.height = this.obj.canvasHeight;
+        }
+        canvasSave = () => {
+            return this.obj.canvas.toDataURL()
+        }
+    }
+    let canvas = document.getElementById('canvas')
+    let writeCanvas = new writeFont(canvas);
+    let images = document.getElementById('images')
+    document.getElementById('clear').onclick = (() => {
+        writeCanvas.canvasClear();
+        images.src = ''
+    })
+    document.getElementById('submit').onclick = (() => {
+        images.src = writeCanvas.canvasSave()
+    })
+</script>

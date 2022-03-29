@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<title>跟随鼠标特效</title>
+
+<head>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            border: 0;
+        }
+
+        ol,
+        ul,
+        li {
+            list-style: none;
+        }
+
+        canvas {
+            border: 1px solid #000;
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="mycanvas" width="1000" height="600"></canvas>
+    <script>
+        let myCanvas = document.getElementById('mycanvas')
+        let ctx = myCanvas.getContext('2d')
+        let circleArr = []
+        class Circle {
+            constructor(x, y, r) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.color = "rgb(255,255,255)";
+                this.dx = Math.random() * 15 - 5;
+                this.dy = Math.random() * 15 - 5;
+                circleArr.push(this);
+            }
+            render = () => {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, true);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update = () => {
+                this.x += this.dx;
+                this.y += this.dy;
+                this.r--;
+                if (this.r < 0) {
+                    for (var i = 0; i < circleArr.length; i++) {
+                        if (circleArr[i] === this) {
+                            circleArr.splice(i, 1);
+                        };
+                    }
+                    return false;
+                }
+                return true;
+            }
+        }
+        myCanvas.onmousemove = (event) => {
+            new Circle(event.clientX, event.clientY, 10);
+        }
+        let draw = () => {
+            ctx.clearRect(0, 0, 1000, 600)
+            for (var i = 0; i < circleArr.length; i++) {
+                circleArr[i].update() && circleArr[i].render();
+            };
+            requestAnimationFrame(draw)
+        }
+        draw()
+    </script>
+</body>
+
+</html>
